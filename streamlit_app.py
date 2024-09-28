@@ -140,7 +140,7 @@ def chat_section(assistantID, client, userThread):
         st.session_state.messages.append({"role": "assistant", "content": reply})
     return userThread
 
+obj = input_section()
+userThread = None
 if(obj is not None):
-    obj = input_section()
-    userThread = None
     userThread = chat_section(obj['assistant'], obj['client'], userThread)
