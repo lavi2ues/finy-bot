@@ -10,6 +10,7 @@ st.write(
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
 )
 
+@st.fragment
 def saveFileOpenAI(location, client):
             file = client.files.create(file = location, purpose = 'assistants')
             return file.id
@@ -24,7 +25,7 @@ def startBotCreation(file_id, client):
     assistant = client.beta.assistants.create(
             instructions="You are a knowledge assistant, Use your knowledge base to best respond to queries",
             name="FileAssistant",
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             tools =[{"type": "file_search"}],
             tool_resources= {
                 "file_search": {
@@ -95,7 +96,8 @@ def get_newest_message(thread_id, client):
     response = list_message.content[0].text.value
     return response
 
-def chat_section(assistantID, client, userThread):
+@st.fragment
+def chat_section(assistantID, client):
     # Create a session state variable to store the chat messages. This ensures that the
     # messages persist across reruns.
     if "messages" not in st.session_state:
@@ -112,15 +114,8 @@ def chat_section(assistantID, client, userThread):
 
         # Store and display the current prompt.
         st.session_state.messages.append({"role": "user", "content": prompt})        
-        if(userThread is not None):
-            st.markdown(userThread.id)
-            userThread = client.beta.threads.messages.create(
-                thread_id=userThread.id,
-                role="user",
-                content=prompt
-                )
-        else:
-            userThread = startThreadCreation(prompt, client)
+
+        userThread = startThreadCreation(prompt, client)
 
         with st.chat_message("user"):
             st.markdown(prompt)
@@ -138,9 +133,10 @@ def chat_section(assistantID, client, userThread):
         with st.chat_message("assistant"):
             reply = st.write(response)
         st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.write(userThread.id)
+        st.write(assistantID)
     return userThread
 
 obj = input_section()
-userThread = None
 if(obj is not None):
-    userThread = chat_section(obj['assistant'], obj['client'], userThread)
+    userThread = chat_section(obj['assistant'], obj['client'])
